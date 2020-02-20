@@ -9,8 +9,8 @@ import numpy as np
 class Maze():
     def __init__(self):
 
-        self.board_x = 35
-        self.board_y = 35
+        self.board_x = 10
+        self.board_y = 10
         self.setup_board()
         self.calculate_allowed_start()
         self.calculate_further_path(self.sp_x, self.sp_y)
@@ -48,36 +48,32 @@ class Maze():
             sp_x, sp_y = self.board_x - 1, cell
         elif wall == 4:
             sp_x, sp_y = cell, 0
+
+
         self.topography[sp_x, sp_y] = 1
         print(self.topography)
         return sp_x, sp_y
+
+
 
 
     def calculate_further_path(self, sp_x, sp_y):
         """ Proceed to calculate the possible moves from the first stone"""
         possible_moves = []
         a = 0
-        while a < 55:
+        while a < 5:
             possible_moves = []
             # which directions can we move from here?
             if self._border_not_reached(sp_x + 1, sp_y):
-                print("no border at {},{}".format(str(sp_x + 1), str(sp_y)))
-                print("we can move left")
                 possible_moves.append([sp_x + 1, sp_y])
             if self._border_not_reached(sp_x - 1, sp_y):
-                print("no border at {},{}".format(str(sp_x - 1), str(sp_y)))
-                print("we can move left")
                 possible_moves.append([sp_x - 1, sp_y])
             if self._border_not_reached(sp_x, sp_y +1):
-                print("no border at {},{}".format(str(sp_x), str(sp_y + 1)))
-                print("we can move down")
                 possible_moves.append([sp_x, sp_y +1])
             if self._border_not_reached(sp_x, sp_y -1):
-                print("no border at {},{}".format(str(sp_x), str(sp_y - 1)))
-                print("we can move up")
                 possible_moves.append([sp_x, sp_y -1])
             print(possible_moves)
-            sp_x, sp_y = self.decide_on_move(possible_moves)
+            sp_x, sp_y = self.decide_on_move(possible_moves, sp_x, sp_y)
             a += 1
 
     def _border_not_reached(self, x, y):
@@ -90,14 +86,53 @@ class Maze():
             return False
         return True
 
-    def decide_on_move(self, possible_moves):
+    def check_current_position(self, next_move, sp_x, sp_y):
+        """ Verify that the new position is not the one
+        where we have been before
+        """
+        return next_move != [sp_x, sp_y]
+
+    def cell_is_ok(self, next_move_x, next_move_y, sp_x, sp_y):
+        """ Check that the current cell exists inside the board 
+        and does not represent the current position
+        """
+        current_position = [sp_x, sp_y]
+        if [next_move_x, next_move_y] == current_position:
+            return False
+        try:
+            if self.topography[next_move_x, next_move_y] == 1:
+                return False
+        except IndexError:
+            return False
+
+        return 
+       
+    def check_neighbours(self, next_move, sp_x, sp_y):
+        """ Verify that the neighbours are not taken yet """
+        if not self.cell_is_ok(next_move[0] + 1, next_move[1], sp_x, sp_y):
+            return False
+        elif not self.cell_is_ok(next_move[0], next_move[1] + 1, sp_x, sp_y):
+            return False
+        elif not self.cell_is_ok(next_move[0] - 1, next_move[1], sp_x, sp_y):
+            return False
+        elif not self.cell_is_ok(next_move[0], next_move[1] - 1, sp_x, sp_y):
+            return False
+        else: 
+            return True
+
+    def decide_on_move(self, possible_moves, sp_x, sp_y):
         """ Take a random move """
+        print(possible_moves)
         next_move = random.choice(possible_moves)
         print(next_move)
         print(next_move[0])
         print(next_move[1])
-        self.topography[next_move[0], next_move[1]] = 1
-        return next_move[0], next_move[1]
+        if self.check_current_position(next_move, sp_x, sp_y):
+            print(self.topography)
+            if self.check_neighbours(next_move, sp_x, sp_y):
+        
+                self.topography[next_move[0], next_move[1]] = 1
+                return next_move[0], next_move[1]
 
 
 class View():
